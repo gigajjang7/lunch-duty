@@ -650,15 +650,15 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
     var pool = state.teachers.filter(function(t){
       return tierOf(t, wkKey) > 0 && !isExcepted(t.id, dateStr);
     });
+    // 인원수·등급까지 같으면 매번 무작위로 섞는다 (다시 생성할 때마다 결과가 달라지도록).
+    var randomKeys = {};
+    pool.forEach(function(t){ randomKeys[t.id] = Math.random(); });
     pool.sort(function(a,b){
       var wa = workingCounts[a.id], wb = workingCounts[b.id];
       if(wa.count !== wb.count) return wa.count - wb.count;
       var ta = tierOf(a, wkKey), tb = tierOf(b, wkKey);
       if(ta !== tb) return ta - tb;
-      var la = wa.last || "0000-00-00";
-      var lb = wb.last || "0000-00-00";
-      if(la !== lb) return la < lb ? -1 : 1;
-      return a.name.localeCompare(b.name, "ko");
+      return randomKeys[a.id] - randomKeys[b.id];
     });
     var selected = pool.slice(0, slotsNeeded).map(function(t){ return {id:t.id, tier:tierOf(t, wkKey)}; });
     selected.forEach(function(s){
