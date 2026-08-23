@@ -512,7 +512,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
     </div>
   </section>
 
-  <footer class="foot">모든 변경사항은 실시간으로 공유됩니다 · 배정 우선순위: 3·4교시 모두 여유 → 4교시만 여유 → 3교시만 여유, 그중 누적 횟수가 가장 적은 선생님부터 선택</footer>
+  <footer class="foot">모든 변경사항은 실시간으로 공유됩니다 · 배정 우선순위: 누적 횟수가 가장 적은 선생님을 우선 배정하고, 횟수가 같으면 3·4교시 모두 여유 → 4교시만 여유 → 3교시만 여유 순으로 선택</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -644,31 +644,26 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
   }
 
   function pickForDay(dateStr, wkKey, workingCounts, slotsNeeded){
+    // fairness (누적 횟수가 적은 사람) 이 최우선, 등급(3·4교시 모두 여유 > 4교시만 > 3교시만)은
+    // 횟수가 같을 때만 참고하는 2차 기준이다. 등급을 먼저 걸러버리면 특정 요일에 최상위
+    // 등급인 사람이 한 명뿐일 때 그 사람만 계속 뽑히는 문제가 생기기 때문.
     var pool = state.teachers.filter(function(t){
       return tierOf(t, wkKey) > 0 && !isExcepted(t.id, dateStr);
     });
-    var tiers = {1:[],2:[],3:[]};
-    pool.forEach(function(t){ tiers[tierOf(t,wkKey)].push(t); });
-    var selected = [];
-    [1,2,3].forEach(function(tierNum){
-      if(selected.length >= slotsNeeded) return;
-      var candidates = tiers[tierNum].filter(function(t){
-        return !selected.some(function(s){ return s.id===t.id; });
-      });
-      candidates.sort(function(a,b){
-        var wa = workingCounts[a.id], wb = workingCounts[b.id];
-        if(wa.count !== wb.count) return wa.count - wb.count;
-        var la = wa.last || "0000-00-00";
-        var lb = wb.last || "0000-00-00";
-        if(la !== lb) return la < lb ? -1 : 1;
-        return a.name.localeCompare(b.name, "ko");
-      });
-      var need = slotsNeeded - selected.length;
-      candidates.slice(0, need).forEach(function(t){
-        selected.push({id:t.id, tier:tierNum});
-        workingCounts[t.id].count += 1;
-        workingCounts[t.id].last = dateStr;
-      });
+    pool.sort(function(a,b){
+      var wa = workingCounts[a.id], wb = workingCounts[b.id];
+      if(wa.count !== wb.count) return wa.count - wb.count;
+      var ta = tierOf(a, wkKey), tb = tierOf(b, wkKey);
+      if(ta !== tb) return ta - tb;
+      var la = wa.last || "0000-00-00";
+      var lb = wb.last || "0000-00-00";
+      if(la !== lb) return la < lb ? -1 : 1;
+      return a.name.localeCompare(b.name, "ko");
+    });
+    var selected = pool.slice(0, slotsNeeded).map(function(t){ return {id:t.id, tier:tierOf(t, wkKey)}; });
+    selected.forEach(function(s){
+      workingCounts[s.id].count += 1;
+      workingCounts[s.id].last = dateStr;
     });
     return {
       ids: selected.map(function(s){ return s.id; }),
@@ -1095,9 +1090,9 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
     html += '<p class="desc">배정 인원을 클릭해 선택/해제하세요. 필요 인원: '+state.slotsPerDay+'명. 변경 시 이후 날짜(잠기지 않은)는 자동으로 다시 계산됩니다.</p>';
     var picked = a.ids || [];
     var candidates = state.teachers.slice().sort(function(x,y){
+      if(x.totalCount!==y.totalCount) return x.totalCount-y.totalCount;
       var tx = tierOf(x, wkKey) || 9, ty = tierOf(y, wkKey) || 9;
       if(tx!==ty) return tx-ty;
-      if(x.totalCount!==y.totalCount) return x.totalCount-y.totalCount;
       return x.name.localeCompare(y.name,"ko");
     });
     candidates.forEach(function(t){
