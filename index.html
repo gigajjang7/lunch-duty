@@ -230,31 +230,43 @@ button.icon-btn{
 button.icon-btn:hover{color:var(--danger);border-color:var(--danger);}
 
 .table-scroll{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);}
-table.grid{width:100%;border-collapse:collapse;font-size:12.5px;min-width:814px;table-layout:fixed;}
-table.grid col.col-name{width:130px;}
-table.grid col.col-period{width:62px;}
-table.grid col.col-del{width:64px;}
-table.grid th, table.grid td{
+input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
+
+.teacher-card-list{display:flex;flex-direction:column;gap:14px;}
+.teacher-card{border:1px solid var(--line);border-radius:var(--radius);background:var(--paper);overflow:hidden;}
+.teacher-card-head{
+  display:flex;align-items:center;gap:8px;
+  padding:10px 12px;border-bottom:1px solid var(--line);
+  background:var(--paper-raised);
+}
+.teacher-card-head .tname{flex:1;max-width:220px;}
+table.tt-grid{border-collapse:collapse;font-size:12.5px;width:100%;max-width:420px;}
+table.tt-grid th, table.tt-grid td{
   border-bottom:1px solid var(--line);
   border-right:1px solid var(--line);
-  padding:8px 8px;
+  padding:7px 4px;
   text-align:center;
   white-space:nowrap;
+  width:60px;
 }
-table.grid th{
+table.tt-grid thead th{
   background:var(--accent-soft);
   color:var(--ink);
   font-weight:700;
   font-size:11.5px;
 }
-table.grid td:first-child, table.grid th:first-child{
-  text-align:left;position:sticky;left:0;background:var(--paper-raised);z-index:1;
-  min-width:120px;
+table.tt-grid tbody th{
+  background:var(--paper-raised);
+  color:var(--ink-dim);
+  font-weight:700;
+  font-size:11px;
+  text-align:left;
+  padding-left:8px;
+  width:56px;
 }
-table.grid th:first-child{background:var(--accent-soft);}
-table.grid td.name-cell input{width:104px;}
-table.grid .grp-head{font-size:10.5px;color:var(--ink-dim);font-weight:700;}
-input[type="checkbox"]{width:16px;height:16px;accent-color:var(--accent);cursor:pointer;}
+table.tt-grid tr.key-period th, table.tt-grid tr.key-period td{background:var(--accent-soft);}
+table.tt-grid tr.key-period th{color:var(--accent);}
+table.tt-grid td.na{color:var(--line-strong);background:var(--paper);}
 
 .empty-state{
   border:1px dashed var(--line-strong);
@@ -284,6 +296,21 @@ ul.exc-list li .tag{font-variant-numeric:tabular-nums;color:var(--ink-dim);}
 .month-status.draft{background:var(--accent2-soft);color:var(--accent2);border-color:var(--accent2);}
 
 .holiday-chips{display:flex;flex-wrap:wrap;gap:6px;}
+
+.prio-list{display:flex;flex-direction:column;gap:6px;}
+.prio-item{
+  display:flex;align-items:center;gap:10px;
+  border:1px solid var(--line);border-radius:var(--radius);
+  background:var(--paper);padding:8px 10px;
+}
+.prio-num{
+  flex:none;width:20px;height:20px;border-radius:50%;
+  background:var(--accent-soft);color:var(--accent);
+  font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;
+}
+.prio-label{flex:1;font-size:12.5px;}
+.prio-btns{display:flex;gap:4px;}
+.prio-btns button{padding:2px 8px;font-size:11px;line-height:1.4;}
 .chip{
   border:1px solid var(--line-strong);border-radius:20px;padding:4px 11px;font-size:12px;
   cursor:pointer;background:var(--paper);color:var(--ink-dim);font-variant-numeric:tabular-nums;
@@ -425,8 +452,13 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
   <!-- TEACHERS -->
   <section class="panel active" id="panel-teachers">
     <div class="card">
+      <h2>요일별 총 교시 수</h2>
+      <p class="desc">학교 전체 공통 설정이에요. 요일마다 수업이 몇 교시까지 있는지 입력하세요 (요일마다 다를 수 있어요). 이 값을 기준으로 그날 수업 비율(부담)을 계산합니다.</p>
+      <div class="row" id="periodsRow"></div>
+    </div>
+    <div class="card">
       <h2>선생님 명단 &amp; 주간 시간표</h2>
-      <p class="desc">요일마다 3교시·4교시에 <b>수업이 있는</b> 시간에 체크하세요. 체크하지 않은 시간이 밥을 먹을 수 있는 여유 시간으로 계산됩니다. 매주 동일한 패턴으로 반복 적용됩니다. 본인 이름을 찾아 직접 체크해주세요.</p>
+      <p class="desc">요일마다 <b>수업이 있는</b> 교시에 체크하세요. 체크하지 않은 시간이 여유 시간으로 계산됩니다. 초록색으로 표시된 3·4교시는 중식지도 배정 가능 여부를 결정하는 핵심 교시입니다. 매주 동일한 패턴으로 반복 적용됩니다. 본인 이름을 찾아 직접 체크해주세요.</p>
       <div class="row" style="margin-bottom:12px;">
         <input type="text" id="newTeacherName" placeholder="이름 입력 후 추가" style="width:160px;">
         <button class="btn" id="addTeacherBtn">+ 선생님 추가</button>
@@ -485,6 +517,12 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
       <div id="holidayChipsWrap"></div>
     </div>
 
+    <div class="card">
+      <h2>배정 우선순위</h2>
+      <p class="desc">누적 횟수가 가장 적은 사람이 항상 최우선이고, 그래도 같으면 무작위로 정해집니다. 그 사이 기준의 순서는 화살표로 바꿀 수 있어요. 바꾸면 다음 "월 생성 / 새로 배정"부터 적용됩니다.</p>
+      <div id="priorityOrderList"></div>
+    </div>
+
     <div class="card" id="calendarCard" style="display:none;">
       <h2 id="calTitle">배정 결과</h2>
       <div class="legend">
@@ -512,7 +550,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
     </div>
   </section>
 
-  <footer class="foot">모든 변경사항은 실시간으로 공유됩니다 · 배정 우선순위: 누적 횟수가 가장 적은 선생님을 우선 배정하고, 횟수가 같으면 3·4교시 모두 여유 → 4교시만 여유 → 3교시만 여유 순으로 선택</footer>
+  <footer class="foot">모든 변경사항은 실시간으로 공유됩니다 · 누적 횟수가 가장 적은 사람이 항상 최우선, 그래도 같으면 무작위 · 그 사이 세부 우선순위는 월간 스케줄 탭에서 바꿀 수 있습니다</footer>
 </div>
 
 <div class="modal-overlay" id="modalOverlay">
@@ -544,13 +582,46 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
   }
   function pad(n){ return n<10 ? "0"+n : ""+n; }
 
+  var MAX_PERIODS = 8;
+  var DEFAULT_PERIODS_BY_DAY = {mon:6,tue:6,wed:6,thu:6,fri:6};
+
+  // 저장된 pattern에 교시 키가 일부만 있어도(예전 데이터거나 새로 늘어난 교시)
+  // 항상 p1~p8이 다 채워진 형태로 맞춰준다. 없는 값은 "여유"(true)로 취급.
+  function normalizePattern(pattern){
+    var src = pattern || {};
+    var out = {};
+    DAY_KEYS.forEach(function(k){
+      var day = src[k] || {};
+      var nd = {};
+      for(var i=1;i<=MAX_PERIODS;i++){
+        var key = "p"+i;
+        nd[key] = (typeof day[key]==="boolean") ? day[key] : true;
+      }
+      out[k] = nd;
+    });
+    return out;
+  }
   function defaultPattern(){
-    var p = {};
-    DAY_KEYS.forEach(function(k){ p[k] = {p3:true,p4:true}; });
-    return p;
+    return normalizePattern({});
+  }
+  // 그 요일 첫 교시부터 총 교시 수까지 중 수업이 있는 비율 (낮을수록 그날 여유로움)
+  function loadRatio(teacher, wkKey){
+    var total = state.periodsByDay[wkKey] || 6;
+    var day = teacher.pattern[wkKey] || {};
+    var busy = 0;
+    for(var i=1;i<=total;i++){ if(!day["p"+i]) busy++; }
+    return total>0 ? busy/total : 0;
+  }
+  // 어떤 날짜가 속한 주의 월요일 날짜 문자열 (주 단위 구분용 키)
+  function mondayOfWeek(dateStr){
+    var parts = dateStr.split("-").map(Number);
+    var d = new Date(parts[0], parts[1]-1, parts[2]);
+    var dow = d.getDay(); // 1=월 .. 5=금 (주말은 이미 목록에서 제외됨)
+    d.setDate(d.getDate() - (dow - 1));
+    return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
   }
 
-  var state = { teachers:[], exceptions:[], slotsPerDay:1, holidaysByMonth:{}, months:{} };
+  var state = { teachers:[], exceptions:[], slotsPerDay:1, holidaysByMonth:{}, months:{}, periodsByDay: Object.assign({}, DEFAULT_PERIODS_BY_DAY), priorityOrder: null };
   var currentTab = "teachers";
   var selectedDate = null; // for edit panel in schedule tab
 
@@ -643,33 +714,100 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
     return out;
   }
 
-  function pickForDay(dateStr, wkKey, workingCounts, slotsNeeded){
-    // fairness (누적 횟수가 적은 사람) 이 최우선, 등급(3·4교시 모두 여유 > 4교시만 > 3교시만)은
-    // 횟수가 같을 때만 참고하는 2차 기준이다. 등급을 먼저 걸러버리면 특정 요일에 최상위
-    // 등급인 사람이 한 명뿐일 때 그 사람만 계속 뽑히는 문제가 생기기 때문.
+  // 우선순위 기준 목록. 누적 횟수는 항상 맨 앞, 랜덤은 항상 맨 뒤로 고정이고
+  // 그 사이 네 항목의 순서는 state.priorityOrder로 사용자가 바꿀 수 있다.
+  var DEFAULT_PRIORITY_ORDER = ["week","defer","tier1","ratio","tier23"];
+  function bestRemainingTier(t, remainingThisWeek){
+    var best = Infinity;
+    remainingThisWeek.forEach(function(e){
+      var tr = tierOf(t, e.wk);
+      if(tr > 0 && tr < best) best = tr;
+    });
+    return best;
+  }
+  var CRITERIA = {
+    week: {
+      label: "이번 주 미배정 여부 (주 2회 방지)",
+      cmp: function(a, b, ctx){
+        var aw = ctx.weekAssigned[a.id] ? 1 : 0, bw = ctx.weekAssigned[b.id] ? 1 : 0;
+        return aw - bw;
+      }
+    },
+    defer: {
+      label: "남은 요일에 더 좋은 등급 있으면 양보",
+      cmp: function(a, b, ctx){
+        var aBetter = (bestRemainingTier(a, ctx.remainingThisWeek) < tierOf(a, ctx.wkKey)) ? 1 : 0;
+        var bBetter = (bestRemainingTier(b, ctx.remainingThisWeek) < tierOf(b, ctx.wkKey)) ? 1 : 0;
+        return aBetter - bBetter;
+      }
+    },
+    tier1: {
+      label: "3·4교시 모두 여유인 사람 우선",
+      cmp: function(a, b, ctx){
+        var ta = tierOf(a, ctx.wkKey), tb = tierOf(b, ctx.wkKey);
+        var aBoth = ta===1 ? 0 : 1, bBoth = tb===1 ? 0 : 1;
+        return aBoth - bBoth;
+      }
+    },
+    ratio: {
+      label: "수업 비율 낮은 사람 우선",
+      cmp: function(a, b, ctx){
+        return loadRatio(a, ctx.wkKey) - loadRatio(b, ctx.wkKey);
+      }
+    },
+    tier23: {
+      label: "4교시만 여유 > 3교시만 여유",
+      cmp: function(a, b, ctx){
+        return tierOf(a, ctx.wkKey) - tierOf(b, ctx.wkKey);
+      }
+    }
+  };
+  function currentPriorityOrder(){
+    var order = state.priorityOrder;
+    return (order && order.length) ? order : DEFAULT_PRIORITY_ORDER;
+  }
+  function pickForDay(dateStr, wkKey, workingCounts, weekAssigned, remainingThisWeek, slotsNeeded){
     var pool = state.teachers.filter(function(t){
       return tierOf(t, wkKey) > 0 && !isExcepted(t.id, dateStr);
     });
-    // 인원수·등급까지 같으면 매번 무작위로 섞는다 (다시 생성할 때마다 결과가 달라지도록).
+    // 인원수·설정된 우선순위 기준까지 같으면 매번 무작위로 섞는다.
     var randomKeys = {};
     pool.forEach(function(t){ randomKeys[t.id] = Math.random(); });
+    var ctx = { weekAssigned: weekAssigned, remainingThisWeek: remainingThisWeek, wkKey: wkKey };
+    var order = currentPriorityOrder();
     pool.sort(function(a,b){
       var wa = workingCounts[a.id], wb = workingCounts[b.id];
       if(wa.count !== wb.count) return wa.count - wb.count;
-      var ta = tierOf(a, wkKey), tb = tierOf(b, wkKey);
-      if(ta !== tb) return ta - tb;
+      for(var i=0;i<order.length;i++){
+        var c = CRITERIA[order[i]];
+        if(!c) continue;
+        var r = c.cmp(a, b, ctx);
+        if(r !== 0) return r;
+      }
       return randomKeys[a.id] - randomKeys[b.id];
     });
     var selected = pool.slice(0, slotsNeeded).map(function(t){ return {id:t.id, tier:tierOf(t, wkKey)}; });
     selected.forEach(function(s){
       workingCounts[s.id].count += 1;
       workingCounts[s.id].last = dateStr;
+      weekAssigned[s.id] = true;
     });
     return {
       ids: selected.map(function(s){ return s.id; }),
       tiers: selected.map(function(s){ return s.tier; }),
       understaffed: selected.length < slotsNeeded
     };
+  }
+
+  function groupDatesByWeek(dates){
+    var weeks = [];
+    var currentWeek = null, currentGroup = null;
+    dates.forEach(function(entry){
+      var wk = mondayOfWeek(entry.date);
+      if(wk !== currentWeek){ currentWeek = wk; currentGroup = []; weeks.push(currentGroup); }
+      currentGroup.push(entry);
+    });
+    return weeks;
   }
 
   function generateMonth(ym, opts){
@@ -683,23 +821,28 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
     state.teachers.forEach(function(t){ workingCounts[t.id] = {count: t.totalCount, last: t.lastAssigned || null}; });
 
     var assignments = {};
-    var dates = monthWeekdayDates(ym);
-    dates.forEach(function(entry){
-      var dateStr = entry.date, wkKey = entry.wk;
-      if(holidays[dateStr]){
-        assignments[dateStr] = {ids:[], tiers:[], locked:false, understaffed:false, holiday:true};
-        return;
-      }
-      var ex = fresh ? null : existing[dateStr];
-      if(ex && ex.locked){
-        (ex.ids||[]).forEach(function(id){
-          if(workingCounts[id]){ workingCounts[id].count += 1; workingCounts[id].last = dateStr; }
-        });
-        assignments[dateStr] = ex;
-        return;
-      }
-      var result = pickForDay(dateStr, wkKey, workingCounts, state.slotsPerDay);
-      assignments[dateStr] = {ids: result.ids, tiers: result.tiers, locked:false, understaffed: result.understaffed, holiday:false};
+    var weeks = groupDatesByWeek(monthWeekdayDates(ym));
+    weeks.forEach(function(weekDates){
+      var weekAssigned = {};
+      weekDates.forEach(function(entry, idx){
+        var dateStr = entry.date, wkKey = entry.wk;
+        if(holidays[dateStr]){
+          assignments[dateStr] = {ids:[], tiers:[], locked:false, understaffed:false, holiday:true};
+          return;
+        }
+        var ex = fresh ? null : existing[dateStr];
+        if(ex && ex.locked){
+          (ex.ids||[]).forEach(function(id){
+            if(workingCounts[id]){ workingCounts[id].count += 1; workingCounts[id].last = dateStr; }
+            weekAssigned[id] = true;
+          });
+          assignments[dateStr] = ex;
+          return;
+        }
+        var remainingThisWeek = weekDates.slice(idx+1).filter(function(e){ return !holidays[e.date]; });
+        var result = pickForDay(dateStr, wkKey, workingCounts, weekAssigned, remainingThisWeek, state.slotsPerDay);
+        assignments[dateStr] = {ids: result.ids, tiers: result.tiers, locked:false, understaffed: result.understaffed, holiday:false};
+      });
     });
 
     state.months[ym] = state.months[ym] || {status:"draft"};
@@ -723,20 +866,65 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
       document.getElementById("panel-"+name).classList.toggle("active", name===currentTab);
     });
     document.getElementById("headerMeta").textContent = "선생님 " + state.teachers.length + "명 등록됨";
-    if(currentTab==="teachers") renderTeachers();
+    if(currentTab==="teachers"){ renderPeriodsSettings(); renderTeachers(); }
     if(currentTab==="exceptions") renderExceptions();
     if(currentTab==="schedule") renderSchedule();
     if(currentTab==="stats") renderStats();
   }
 
-  // ---------- TEACHERS ----------
-  function teacherRowHtml(t){
-    var html = '<tr data-id="'+t.id+'"><td class="name-cell"><input type="text" class="tname" value="'+escapeAttr(t.name)+'"></td>';
+  // ---------- PERIODS SETTINGS (요일별 총 교시 수) ----------
+  function renderPeriodsSettings(){
+    var wrap = document.getElementById("periodsRow");
+    var html = "";
     DAY_KEYS.forEach(function(k){
-      html += '<td><input type="checkbox" class="tp3" data-day="'+k+'" '+(t.pattern[k].p3?"":"checked")+'></td>';
-      html += '<td><input type="checkbox" class="tp4" data-day="'+k+'" '+(t.pattern[k].p4?"":"checked")+'></td>';
+      html += '<div><label class="field-label">'+DAY_LABELS[k]+'</label>'
+        + '<input type="number" class="periodsInput" data-day="'+k+'" min="1" max="10" style="width:60px;" value="'+(state.periodsByDay[k]||6)+'"></div>';
     });
-    html += '<td><button class="icon-btn delTeacher">삭제</button></td></tr>';
+    wrap.innerHTML = html;
+    wrap.querySelectorAll(".periodsInput").forEach(function(inp){
+      inp.addEventListener("change", function(e){
+        var day = e.target.getAttribute("data-day");
+        var v = Math.max(1, Math.min(10, parseInt(e.target.value,10) || 6));
+        e.target.value = v;
+        var next = Object.assign({}, state.periodsByDay);
+        next[day] = v;
+        state.periodsByDay = next;
+        renderTeachers();
+        sb.from("settings").update({periods_by_day: state.periodsByDay}).eq("id",1).then(function(res){
+          if(res.error) showAlert("저장 실패: "+res.error.message);
+        });
+      });
+    });
+  }
+
+  // ---------- TEACHERS ----------
+  function maxPeriodsAcrossDays(){
+    var maxP = 4;
+    DAY_KEYS.forEach(function(k){ maxP = Math.max(maxP, state.periodsByDay[k] || 6); });
+    return maxP;
+  }
+
+  // 가로축 월~금, 세로축 1~n교시인 실제 시간표 모양의 그리드 (선생님 1명당 1개).
+  function teacherCardHtml(t){
+    var maxP = maxPeriodsAcrossDays();
+    var html = '<div class="teacher-card" data-id="'+t.id+'">';
+    html += '<div class="teacher-card-head"><input type="text" class="tname" value="'+escapeAttr(t.name)+'">'
+      + '<button class="icon-btn delTeacher">삭제</button></div>';
+    html += '<div class="table-scroll"><table class="tt-grid"><thead><tr><th></th>';
+    DAY_KEYS.forEach(function(k){ html += '<th>'+DAY_LABELS[k]+'</th>'; });
+    html += '</tr></thead><tbody>';
+    for(var i=1;i<=maxP;i++){
+      var rowCls = (i===3||i===4) ? ' class="key-period"' : "";
+      html += '<tr'+rowCls+'><th>'+i+'교시</th>';
+      DAY_KEYS.forEach(function(k){
+        var n = state.periodsByDay[k] || 6;
+        if(i>n){ html += '<td class="na">–</td>'; return; }
+        var key = "p"+i;
+        html += '<td><input type="checkbox" class="tperiod" data-day="'+k+'" data-period="'+i+'" '+(t.pattern[k][key]?"":"checked")+'></td>';
+      });
+      html += '</tr>';
+    }
+    html += '</tbody></table></div></div>';
     return html;
   }
 
@@ -768,15 +956,11 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
       t.name = e.target.value;
       debouncedNameUpdate(t.id, e.target.value);
     });
-    tr.querySelectorAll(".tp3").forEach(function(cb){
+    tr.querySelectorAll(".tperiod").forEach(function(cb){
       cb.addEventListener("change", function(e){
-        t.pattern[e.target.getAttribute("data-day")].p3 = !e.target.checked;
-        updateTeacherPattern(t.id, t.pattern);
-      });
-    });
-    tr.querySelectorAll(".tp4").forEach(function(cb){
-      cb.addEventListener("change", function(e){
-        t.pattern[e.target.getAttribute("data-day")].p4 = !e.target.checked;
+        var day = e.target.getAttribute("data-day");
+        var period = e.target.getAttribute("data-period");
+        t.pattern[day]["p"+period] = !e.target.checked;
         updateTeacherPattern(t.id, t.pattern);
       });
     });
@@ -793,38 +977,31 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
       wrap.innerHTML = '<div class="empty-state">등록된 선생님이 없습니다. 위에서 이름을 입력해 추가해 보세요.</div>';
       return;
     }
-    var html = '<div class="table-scroll"><table class="grid" id="teacherTable"><colgroup><col class="col-name">';
-    DAY_KEYS.forEach(function(){ html += '<col class="col-period"><col class="col-period">'; });
-    html += '<col class="col-del"></colgroup><thead><tr><th rowspan="2">이름</th>';
-    DAY_KEYS.forEach(function(k){ html += '<th colspan="2" class="grp-head">'+DAY_LABELS[k]+'</th>'; });
-    html += '<th rowspan="2"></th></tr><tr>';
-    DAY_KEYS.forEach(function(){ html += '<th>3교시</th><th>4교시</th>'; });
-    html += '</tr></thead><tbody>';
-    state.teachers.forEach(function(t){ html += teacherRowHtml(t); });
-    html += '</tbody></table></div>';
+    var html = '<div class="teacher-card-list">';
+    state.teachers.forEach(function(t){ html += teacherCardHtml(t); });
+    html += '</div>';
     wrap.innerHTML = html;
 
-    wrap.querySelectorAll("tr[data-id]").forEach(function(tr){
-      var id = tr.getAttribute("data-id");
+    wrap.querySelectorAll(".teacher-card").forEach(function(card){
+      var id = card.getAttribute("data-id");
       var t = state.teachers.find(function(t){ return t.id===id; });
-      bindTeacherRow(tr, t);
+      bindTeacherRow(card, t);
     });
   }
 
-  // patches a single row in place without rebuilding the table, so a different
-  // teacher typing/checking elsewhere never loses focus when someone else's row changes
+  // patches a single teacher's card in place without rebuilding the whole list, so a
+  // different teacher typing/checking elsewhere never loses focus when someone else's card changes
   function patchTeacherRow(t){
-    var tbody = document.querySelector("#teacherTable tbody");
-    if(!tbody) return false;
-    var tr = tbody.querySelector('tr[data-id="'+t.id+'"]');
-    if(!tr) return false;
-    var nameInput = tr.querySelector(".tname");
+    var card = document.querySelector('.teacher-card[data-id="'+t.id+'"]');
+    if(!card) return false;
+    var nameInput = card.querySelector(".tname");
     if(document.activeElement !== nameInput){ nameInput.value = t.name; }
-    DAY_KEYS.forEach(function(k){
-      var p3 = tr.querySelector('.tp3[data-day="'+k+'"]');
-      var p4 = tr.querySelector('.tp4[data-day="'+k+'"]');
-      if(document.activeElement!==p3) p3.checked = !t.pattern[k].p3;
-      if(document.activeElement!==p4) p4.checked = !t.pattern[k].p4;
+    card.querySelectorAll(".tperiod").forEach(function(cb){
+      if(document.activeElement===cb) return;
+      var day = cb.getAttribute("data-day");
+      var period = cb.getAttribute("data-period");
+      var day_ = t.pattern[day] || {};
+      cb.checked = !day_["p"+period];
     });
     return true;
   }
@@ -910,8 +1087,45 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
 
   function currentYm(){ return monthPicker.value || ymNow(); }
 
+  function renderPriorityOrder(){
+    var wrap = document.getElementById("priorityOrderList");
+    var order = currentPriorityOrder();
+    var html = '<div class="prio-list">';
+    order.forEach(function(key, idx){
+      var c = CRITERIA[key];
+      if(!c) return;
+      html += '<div class="prio-item">'
+        + '<span class="prio-num">'+(idx+1)+'</span>'
+        + '<span class="prio-label">'+escapeHtml(c.label)+'</span>'
+        + '<div class="prio-btns">'
+        + '<button class="icon-btn prioUp" data-idx="'+idx+'"'+(idx===0?" disabled":"")+'>▲</button>'
+        + '<button class="icon-btn prioDown" data-idx="'+idx+'"'+(idx===order.length-1?" disabled":"")+'>▼</button>'
+        + '</div></div>';
+    });
+    html += '</div>';
+    wrap.innerHTML = html;
+    wrap.querySelectorAll(".prioUp").forEach(function(btn){
+      btn.addEventListener("click", function(){ movePriority(+btn.getAttribute("data-idx"), -1); });
+    });
+    wrap.querySelectorAll(".prioDown").forEach(function(btn){
+      btn.addEventListener("click", function(){ movePriority(+btn.getAttribute("data-idx"), 1); });
+    });
+  }
+  function movePriority(idx, dir){
+    var order = currentPriorityOrder().slice();
+    var newIdx = idx + dir;
+    if(newIdx < 0 || newIdx >= order.length) return;
+    var tmp = order[idx]; order[idx] = order[newIdx]; order[newIdx] = tmp;
+    state.priorityOrder = order;
+    renderPriorityOrder();
+    sb.from("settings").update({priority_order: order}).eq("id",1).then(function(res){
+      if(res.error) showAlert("저장 실패: "+res.error.message);
+    });
+  }
+
   function renderSchedule(){
     document.getElementById("slotsPerDaySel").value = String(state.slotsPerDay);
+    renderPriorityOrder();
     var ym = currentYm();
     var m = state.months[ym];
     var statusWrap = document.getElementById("monthStatusWrap");
@@ -1087,12 +1301,28 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
       wrap.innerHTML = html;
       return;
     }
-    html += '<p class="desc">배정 인원을 클릭해 선택/해제하세요. 필요 인원: '+state.slotsPerDay+'명. 변경 시 이후 날짜(잠기지 않은)는 자동으로 다시 계산됩니다.</p>';
+    html += '<p class="desc">배정 인원을 클릭해 선택/해제하세요 (월간 스케줄 상단의 "배정 우선순위" 설정 순서대로 정렬됩니다). 필요 인원: '+state.slotsPerDay+'명. 변경 시 이후 날짜(잠기지 않은)는 자동으로 다시 계산됩니다.</p>';
     var picked = a.ids || [];
+    var weekSet = {};
+    var thisWeek = mondayOfWeek(selectedDate);
+    Object.keys(m.assignments).forEach(function(d){
+      if(d===selectedDate) return;
+      if(mondayOfWeek(d) !== thisWeek) return;
+      (m.assignments[d].ids||[]).forEach(function(id){ weekSet[id] = true; });
+    });
+    var remainingThisWeek = monthWeekdayDates(ym).filter(function(e){
+      return e.date > selectedDate && mondayOfWeek(e.date) === thisWeek && !((state.holidaysByMonth[ym]||[]).indexOf(e.date) >= 0);
+    });
+    var editCtx = { weekAssigned: weekSet, remainingThisWeek: remainingThisWeek, wkKey: wkKey };
+    var editOrder = currentPriorityOrder();
     var candidates = state.teachers.slice().sort(function(x,y){
       if(x.totalCount!==y.totalCount) return x.totalCount-y.totalCount;
-      var tx = tierOf(x, wkKey) || 9, ty = tierOf(y, wkKey) || 9;
-      if(tx!==ty) return tx-ty;
+      for(var i=0;i<editOrder.length;i++){
+        var c = CRITERIA[editOrder[i]];
+        if(!c) continue;
+        var r = c.cmp(x, y, editCtx);
+        if(r!==0) return r;
+      }
       return x.name.localeCompare(y.name,"ko");
     });
     candidates.forEach(function(t){
@@ -1100,10 +1330,11 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
       var excepted = isExcepted(t.id, selectedDate);
       var isPicked = picked.indexOf(t.id) >= 0;
       var badge = tier===1?'<span class="badge t1">3·4 모두</span>':tier===2?'<span class="badge t2">4교시만</span>':tier===3?'<span class="badge t3">3교시만</span>':'<span class="badge t3">불가</span>';
+      var extra = (excepted?' · 이 날 예외':'') + (weekSet[t.id]?' · 이번주 배정됨':'');
       html += '<div class="cand'+(isPicked?' picked':'')+'" data-id="'+t.id+'" style="'+(excepted?'opacity:0.45;':'')+'">'
         + '<span class="n">'+escapeHtml(t.name)+'</span>'
         + badge
-        + '<span class="cnt">누적 '+t.totalCount+'회'+(excepted?' · 이 날 예외':'')+'</span>'
+        + '<span class="cnt">누적 '+t.totalCount+'회 · 부담 '+Math.round(loadRatio(t, wkKey)*100)+'%'+extra+'</span>'
         + '</div>';
     });
     wrap.innerHTML = html;
@@ -1154,12 +1385,14 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
       Promise.all([
         sb.from("teachers").delete().not("id","is",null),
         sb.from("months").delete().not("ym","is",null),
-        sb.from("settings").update({slots_per_day:1, holidays_by_month:{}}).eq("id",1)
+        sb.from("settings").update({slots_per_day:1, holidays_by_month:{}, periods_by_day: DEFAULT_PERIODS_BY_DAY, priority_order: DEFAULT_PRIORITY_ORDER}).eq("id",1)
       ]).then(function(results){
         var failed = results.find(function(r){ return r.error; });
         if(failed){ showAlert("초기화 실패: "+failed.error.message); return; }
         state.teachers = []; state.exceptions = []; state.months = {};
         state.slotsPerDay = 1; state.holidaysByMonth = {};
+        state.periodsByDay = Object.assign({}, DEFAULT_PERIODS_BY_DAY);
+        state.priorityOrder = null;
         selectedDate = null;
         render();
       });
@@ -1168,7 +1401,7 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
 
   // ---------- Supabase row <-> internal shape mapping ----------
   function mapTeacherRow(row){
-    return { id: row.id, name: row.name, pattern: row.pattern, totalCount: row.total_count, lastAssigned: row.last_assigned };
+    return { id: row.id, name: row.name, pattern: normalizePattern(row.pattern), totalCount: row.total_count, lastAssigned: row.last_assigned };
   }
   function mapExceptionRow(row){
     return { id: row.id, teacherId: row.teacher_id, date: row.date };
@@ -1223,6 +1456,10 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
     if(payload.new){
       state.slotsPerDay = payload.new.slots_per_day || 1;
       state.holidaysByMonth = payload.new.holidays_by_month || {};
+      var periodsChanged = JSON.stringify(state.periodsByDay) !== JSON.stringify(payload.new.periods_by_day || DEFAULT_PERIODS_BY_DAY);
+      state.periodsByDay = payload.new.periods_by_day || Object.assign({}, DEFAULT_PERIODS_BY_DAY);
+      if(periodsChanged && currentTab==="teachers"){ renderPeriodsSettings(); renderTeachers(); }
+      state.priorityOrder = payload.new.priority_order || null;
     }
     if(currentTab==="schedule") renderSchedule();
   }
@@ -1266,6 +1503,8 @@ footer.foot{margin-top:30px;padding-top:14px;border-top:1px solid var(--line);co
       if(sRes.data){
         state.slotsPerDay = sRes.data.slots_per_day || 1;
         state.holidaysByMonth = sRes.data.holidays_by_month || {};
+        state.periodsByDay = sRes.data.periods_by_day || Object.assign({}, DEFAULT_PERIODS_BY_DAY);
+        state.priorityOrder = sRes.data.priority_order || null;
       }
       loadingOverlay.style.display = "none";
       render();
